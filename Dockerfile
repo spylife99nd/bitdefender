@@ -68,7 +68,7 @@ RUN apt-get update -qq && apt-get install -yq --no-install-recommends ca-certifi
 RUN mkdir -p /opt/malice && echo "accept" | bdscan --update
 
 # Add EICAR Test Virus File to malware folder
-ADD http://www.eicar.org/download/eicar.com.txt /malware/EICAR
+ADD https://secure.eicar.org/eicar.com.txt /malware/EICAR
 
 COPY --from=go_builder /bin/avscan /bin/avscan
 
