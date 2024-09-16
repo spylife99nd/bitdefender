@@ -67,7 +67,7 @@ RUN set -x \
 
 
 # test chạy thôi
-RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN rm -rf /tmp/*
 # Add EICAR Test Virus File to malware folder
 ADD https://secure.eicar.org/eicar.com.txt /malware/EICAR
 
