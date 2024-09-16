@@ -36,37 +36,38 @@ ENV BDURL https://download.bitdefender.com/SMB/Workstation_Security_and_Manageme
 
 RUN buildDeps='ca-certificates wget build-essential' \
   && apt-get update -qq \
-  && apt-get install -yq $buildDeps psmisc \
-  && set -x \
+  && apt-get install -yq $buildDeps psmisc
+  
+RUN set -x \
   && echo "===> Install Bitdefender..." \
   && cd /tmp \
-  && wget -q ${BDURL}/BitDefender-Antivirus-Scanner-${BDVERSION}-linux-amd64.deb.run \
-  && chmod 755 /tmp/BitDefender-Antivirus-Scanner-${BDVERSION}-linux-amd64.deb.run \
-  && sh /tmp/BitDefender-Antivirus-Scanner-${BDVERSION}-linux-amd64.deb.run --check \
-  && echo "===> Making installer noninteractive..." \
-  && sed -i 's/^more LICENSE$/cat  LICENSE/' BitDefender-Antivirus-Scanner-${BDVERSION}-linux-amd64.deb.run \
-  && sed -i 's/^CRCsum=.*$/CRCsum="0000000000"/' BitDefender-Antivirus-Scanner-${BDVERSION}-linux-amd64.deb.run \
-  && sed -i 's/^MD5=.*$/MD5="00000000000000000000000000000000"/' BitDefender-Antivirus-Scanner-${BDVERSION}-linux-amd64.deb.run \
-  && (echo 'accept'; echo 'n') | sh /tmp/BitDefender-Antivirus-Scanner-${BDVERSION}-linux-amd64.deb.run; \
-  if [ "x$BDKEY" != "x" ]; then \
-  echo "===> Updating License..."; \
-  oldkey='^Key =.*$'; \
-  newkey="Key = ${BDKEY}"; \
-  sed -i "s|$oldkey|$newkey|g" /opt/BitDefender-scanner/etc/bdscan.conf; \
-  cat /opt/BitDefender-scanner/etc/bdscan.conf; \
-  fi \
-  && echo "===> Clean up unnecessary files..." \
-  && apt-get purge -y --auto-remove $buildDeps \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /go /usr/local/go
 
-# Ensure ca-certificates is installed for elasticsearch to use https
-RUN apt-get update -qq && apt-get install -yq --no-install-recommends ca-certificates \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+  # && wget -q ${BDURL}/BitDefender-Antivirus-Scanner-${BDVERSION}-linux-amd64.deb.run \
+  # && chmod 755 /tmp/BitDefender-Antivirus-Scanner-${BDVERSION}-linux-amd64.deb.run \
 
-# Update Bitdefender definitions
-RUN mkdir -p /opt/malice && echo "accept" | bdscan --update
+  && wget -q http://download.bitdefender.com/repos/deb/pool/non-free/b/bitdefender-scanner/bitdefender-scanner_7.6-3_amd64.deb \
+  && chmod 755 /tmp/bitdefender-scanner_7.6-3_amd64.deb \
+  && dpkg -i bitdefender-scanner_7.6-3_amd64.deb \
+  && bdscan --version \
 
+  && export path_scan_test=$(pwd)\
+  # && bdscan "$path_scan_test"\
+  # && yes | bdscan "$path_scan_test" && echo "accept"\
+  # cái này để chạy spcae liên tục và cuối sẽ nhập accept (đã cài đặt xong)
+  && yes "accept" | bdscan "$path_scan_test"\
+
+
+  
+
+
+
+
+  && echo "===> install done..." \
+  && echo "===> Making installer noninteractive..." 
+
+
+# test chạy thôi
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 # Add EICAR Test Virus File to malware folder
 ADD https://secure.eicar.org/eicar.com.txt /malware/EICAR
 
@@ -74,5 +75,6 @@ COPY --from=go_builder /bin/avscan /bin/avscan
 
 WORKDIR /malware
 
-ENTRYPOINT ["/bin/avscan"]
-CMD ["--help"]
+
+
+
